@@ -1,9 +1,10 @@
-def extract_skills(resume_text,fname,country):
+def extract_skills(resume_text,fname,country,lname):
     import os
     import spacy
     import pandas as pd
 
     from rank_bm25 import BM25Okapi
+    import csv
 
     from pymongo import MongoClient
     nlp = spacy.load('en_core_web_sm')
@@ -12,10 +13,11 @@ def extract_skills(resume_text,fname,country):
     # removing stop words and implementing word tokenization
 
     # reading the csv file
-    data = pd.read_csv(r"C:\Users\abc\Desktop\UFT\tr-master\tr-master\skills_tr.csv")
+
+
     client=MongoClient("localhost",27017)
     db=client.Project
-    col=db.JD
+    #col=db.JD
     posts=db.post
     skill=[]
     for post in posts.find():
@@ -24,7 +26,19 @@ def extract_skills(resume_text,fname,country):
     for i in posts.find():
         des=i["skils"]
         sh.append(des)
-
+    exp=[]
+    i=0
+    while (i<len(skill)):
+        num=skill[i]["ExpRange"]
+        e=num.split("-")[0]
+        ae=num.split("-")[1]
+        if (float(e)-1<float(lname)) and   (float(ae[1])>=float(lname)):
+            exp.append(i)
+        i+=1
+    s=[]
+    for i in exp:
+        s.append(sh[i])
+    sh=s
     def extract_skills(resume_text):
         nlp_text = nlp(resume_text)
 
@@ -32,10 +46,13 @@ def extract_skills(resume_text,fname,country):
         tokens = [token.text for token in nlp_text if not token.is_stop]
 
         # reading the csv file
-        data = pd.read_csv(r"C:\Users\abc\Desktop\UFT\tr-master\tr-master\skills_tr.csv")
+        with open(r"F:\skills_talentrecruit.csv", newline='') as f:
+            reader = csv.reader(f)
+            data = list(reader)
+        skills=data[0]
 
         # extract values
-        skills = list(data.columns.values)
+
 
         skillset = []
 
@@ -60,7 +77,7 @@ def extract_skills(resume_text,fname,country):
     result1=result.copy()
     ra=result.index(max(result))
     result1.pop(ra)
-    ra1=result.index(max(result1))
+    ra1=result1.index(max(result1))
     result1.pop(ra1)
     ma=max(result1)
     raaa=result.index(max(result1))
